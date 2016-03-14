@@ -1,7 +1,8 @@
 # DiscussionBoard
 
-Griffin Solomini and Sam Farren
-Discussion board implemented in Python to service clients who want to connect to certain groups and post messages.
+### Griffin Solomini and Sam Farren
+
+### Discussion board implemented in Python to service clients who want to connect to certain groups and post messages.
 
 ## Part 1
 One unique Group for the server: 
