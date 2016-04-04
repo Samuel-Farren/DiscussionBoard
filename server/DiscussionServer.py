@@ -14,7 +14,6 @@ class Group:
         self.name = groupName
         self.messages=[]
         self.clients = []
-        #self.connections = []
 
 #Message Class that holds the userName of who posted the message, date when the message was posted,
 #subject of message, body content of message, and the Unique message ID of that message
@@ -68,11 +67,15 @@ def findGroupByUserName(userName):
 
 #Finds a message based off the ID of the message that the user wants
 #if -1 is returned then that message doesn't exist
-def findMessage(messageID):
+def findMessage(messageID,messageGroup):
+    i=0
     for group in groups:
         for message in group.messages:
             if message.id == messageID:
+                messageGroup.append(i)
                 return message
+        i=i+1
+    messageGroup.append(-1)
     return -1
 
 #This function is called when someone initially joins a group
@@ -116,6 +119,7 @@ def handler(connectionSocket, addr,c):
         #if the user exits out of their GUI it sends a blank request(This test catches that scenario)
         if len(request)==0:
             print "User Closed GUI: "
+            #Check if they logged in to the discussion board, if so remove their userName from the list
             if c.userName in userNames:
                 print "User Closed GUI: " + str(c.userName)
                 userNames.remove(c.userName)
@@ -125,6 +129,7 @@ def handler(connectionSocket, addr,c):
                     print "before removed: " + str(groups[groupID].clients)
                     groups[groupID].clients.remove(client)
                     print "after removed: " + str(groups[groupID].clients)
+                    #Let other people in group that the user left
                     if len(groups[groupID].clients)>0:
                         try:
                             for updateClient in groups[groupID].clients:
@@ -138,6 +143,7 @@ def handler(connectionSocket, addr,c):
 
         print "request is: " + request
 
+#Obtain parsed tokens from the user request
         tokens = request.split("\r\n")
         print tokens
         tokens[0].strip()
@@ -154,6 +160,7 @@ def handler(connectionSocket, addr,c):
                 print str(groups[groupID].clients)
                 groups[groupID].clients.append(c)
                 print str(groups[groupID].clients)
+#Update everyone in group that user joined
                 try:
                     for client in groups[groupID].clients:
                         print "Sending to client: " + client.userName
@@ -178,6 +185,8 @@ def handler(connectionSocket, addr,c):
                 users+= "END\r\n\r\n"
                 connectionSocket.send(users)
 
+#No one in group, add client to group and update username of client. Send 
+#past two messages in group (if any) then send list of people in group(just himself since he's the only one in this group)
             else:
                 c.userName = userName
                 c.groups.append(groupID)
@@ -222,6 +231,7 @@ def handler(connectionSocket, addr,c):
             groups[groupID].messages.append(message)
             messageLen = len(groups[groupID].messages)
             print "Length of messages in group " + str(groupID) + " is " + str(messageLen)
+#Send everyone in group the message that was just posted
             for client in groups[groupID].clients:
                 print "sending to client\n\n\n"
                 client.connection.send("MESSAGE\r\n" + groupName + "\r\n" + str(groups[groupID].messages[messageLen-1].id) + "\r\n" + groups[groupID].messages[messageLen-1].userName + "\r\n" + groups[groupID].messages[messageLen-1].postDate + "\r\n" + groups[groupID].messages[messageLen-1].subject
@@ -229,23 +239,26 @@ def handler(connectionSocket, addr,c):
             uniqueMessageID=uniqueMessageID + 1
 
         elif (tokens[1]=='GET'):
-            #check user is in group
             userName = tokens[2]
             messageID = tokens[3]
             messageID = int(messageID)
-            #messageGroup = -1;
-            foundMessage = findMessage(messageID)
+            messageGroup = []
+#Finds the message if it exists and updates the group that the message is found in and
+            foundMessage = findMessage(messageID,messageGroup)
             groupID = findGroupByUserName(userName)
+
+#checks if the message was found and if user belongs in the group that the message was found in
             if foundMessage != -1:
-                if groupID != -1:
-                    connectionSocket.send("GETMESSAGE\r\n" +groups[groupID].name + "\r\n" + str(messageID) + "\r\n" + userName + "\r\n" + foundMessage.postDate + "\r\n" + foundMessage.subject + "\r\n" + foundMessage.body + "\r\n\r\n")
+                if int(messageGroup[0]) in c.groups:
+                    connectionSocket.send("GETMESSAGE\r\n" +groups[int(messageGroup[0])].name + "\r\n" + str(messageID) + "\r\n" + foundMessage.userName + "\r\n" + foundMessage.postDate + "\r\n" + foundMessage.subject + "\r\n" + foundMessage.body + "\r\n\r\n")
                 else:
                     print "Cant find user in group"
                     connectionSocket.send("NOTINGROUP\r\n" +str(messageID) + "\r\n\r\n")
             else:
                 print "Requested Message Does Not Exist"
                 connectionSocket.send("MESSAGEDNE\r\n" + str(messageID) + "\r\n\r\n")
-
+                
+#Delete the user from the group they want to unjoin from 
         elif (tokens[1]=='UNJOIN'):
             userName = tokens[2]
             groupName = tokens[3].strip()
@@ -253,6 +266,7 @@ def handler(connectionSocket, addr,c):
             client = findClient(userName,groupID)
             print "before removed: " + str(groups[groupID].clients)
             groups[groupID].clients.remove(client)
+            c.groups.remove(groupID)
             userNames.remove(userName)
             print "after removed: " + str(groups[groupID].clients)
             #Notify all users in the group that someone joined
@@ -264,6 +278,7 @@ def handler(connectionSocket, addr,c):
                 except serverSocket.error as msg:
                     print "msg is: " + msg
 
+#Sends the user a list of all the users in that group
         elif (tokens[1]=='USERS'):
             groupName = tokens[2].strip()
             groupID = groupMap[groupName]
@@ -293,9 +308,10 @@ while True:
     connectionSocket, addr = serverSocket.accept()
     print "accepted connection and client added"
     c=Client(connectionSocket)
+#Initial list of groups that is sent to the user once the connection is accepted
     c.connection.send("GROUPS\r\nHouse Gossip\r\nReal Talk\r\nStreet Dope\r\nFun Tymez\r\nNetworking\r\n\r\n")
 
     #Starts a new thread for the current user that just connected to the server
-    #Their client object, handler method, and connectoinSocket and address are
+    #Their client object, handler method, and connectionSocket and address are
     #passed into the new thread
     thread.start_new_thread(handler, (connectionSocket, addr,c))
