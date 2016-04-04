@@ -199,6 +199,7 @@ public class Main extends JPanel {
 
 					newContentPane.setOpaque(true);
 					frame.setContentPane(newContentPane);
+					frame.setResizable(false);
 
 					frame.pack();
 					frame.setVisible(true);
@@ -289,7 +290,7 @@ public class Main extends JPanel {
 	// and output streams
 	private void connectToServer() {
 		try {
-			socket = new Socket("192.168.1.17", 6789);
+			socket = new Socket("beta.cse.ohio-state.edu", 6789);
 			socketReader = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
 			socketWriter = new DataOutputStream(socket.getOutputStream());
@@ -321,11 +322,11 @@ public class Main extends JPanel {
 											.readLine().trim());
 								}
 							}
-							
+
 							if (response.equals("USERNAMELOGIN")) {
 								String user = socketReader.readLine().trim();
 								String success = socketReader.readLine().trim();
-								
+
 								if (success.equals("YES")) {
 									// Lock the text field and login button
 									userNameField.setEditable(false);
@@ -339,7 +340,7 @@ public class Main extends JPanel {
 
 									// Set username
 									username = user;
-									
+
 									messages.append("Logged in as: " + username + "\n\n");
 								} else {
 									messages.append("Unable to login as: " + user + ", username taken.\n\n");
@@ -442,13 +443,13 @@ public class Main extends JPanel {
 								messages.append(user + " unjoined " + group
 										+ "\n\n");
 							}
-							
+
 							// Response when requesting a message in a group a user is not in
 							if (response.equals("NOTINGROUP")) {
 								String id = socketReader.readLine().trim();
 								messages.append("Do not belong to the group message " + id + " is in\n\n");
 							}
-							
+
 							// Response when message doesn't exist
 							if (response.equals("MESSAGEDNE")) {
 								String id = socketReader.readLine().trim();
@@ -462,25 +463,26 @@ public class Main extends JPanel {
 			}
 		});
 	}
-	
-	// Setup Main window 
+
+	// Setup Main window
     private static void createGUI() {
         JFrame frame = new JFrame("Discussion Board");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+
         JComponent newContentPane = new Main();
         newContentPane.setOpaque(true);
         frame.setContentPane(newContentPane);
- 
+		frame.setResizable(false);
+
         frame.pack();
         frame.setVisible(true);
     }
- 
+
     // Main method for program
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createGUI();
+	        	createGUI();
             }
         });
     }

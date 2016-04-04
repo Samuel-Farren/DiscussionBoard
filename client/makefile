@@ -7,7 +7,6 @@ JR = java
 
 CLASSES = \
 Main.java \
-Login.java \
 NewMessage.java
 
 default: classes
