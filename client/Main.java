@@ -415,8 +415,8 @@ public class Main extends JPanel {
 								String user;
 								messages.append("Users in group " + group
 										+ ":\n");
-								while (!(user = socketReader.readLine()).equals("END")) {
-									user.trim();
+								while (!(user = socketReader.readLine().trim()).equals("END")) {
+									System.out.println(user);
 									messages.append(user + "\t");
 								}
 								socketReader.readLine();
