@@ -1,26 +1,136 @@
-# DiscussionBoard
+Networking Project 2: Discussion Board
 
-### Griffin Solomini and Sam Farren
+Sam Farren
+farren.19@osu.edu
 
-### Discussion board implemented in Python to service clients who want to connect to certain groups and post messages.
+Griffin Solimini
+solimini.1@osu.edu
 
-## Part 1
-One unique Group for the server: 
-In the first part of this project, you will consider that all clients belong to one and only one group.  A client joins
-by connecting to a dedicated server (a standalone process) and is prompted to enter a non-existent user name in
-that  group.   Note:  in  this  project,  you  are not required  to  implement  any  user  authentication  mechanisms.   The
-server listens on a specic non-system port endlessly.  The server keeps track of all users that join or leave the group.
-When a user joins or leaves the group, all other connected clients get notied by the server.  When a user (or client)
-joins the group, he/she can only see the last 2 messages that were posted on the board by other clients who joined
-earlier.  A list of users belonging to the group is displayed once a new user joins (in this part, the list represents all
-users/clients that have joined earlier).  When a user posts a new message, other users in the same group should see
-the posted message.  Messages are displayed in the following format:  \Message ID, Sender, Post Date, Subject."  A
-user can retrieve the content of a message by contacting the server and providing the message ID as a parameter.
-Your client program should also provide the option to leave the group.  Once a user leaves the group,  the server
-noties all other users in the same group of this event.
+#############################################################################
 
-## Part 2
-  Extend Part 1 to allow users to join multiple discussion groups.  Once a user is connected to the server, the server
-provides a list of 5 groups.  The user can then select the desired group by id or by name.  A user can join multiple
-groups at the same time.  Remember that a user in one group cannot see users in other groups as well as the messages
-they have posted
+CLIENT
+
+Client is written in Java using Swing for the graphic interface. If using ssh
+to run, will need to use ssh -X.
+
+Instructions to compile client:
+'cd' to project directory
+run 'make'
+
+Instructions to run client:
+run 'java Main'
+
+#############################################################################
+
+SERVER
+
+Server is written in python.
+
+Instructions to compile server:
+N/A
+
+Instructions to run server
+run 'python DiscussionBoard.py'
+
+#############################################################################
+
+PROTOCOL
+
+JOIN sent from client to server to join user to group
+
+\r\n
+JOIN\r\n
+username\r\n
+group\r\n
+\r\n
+
+UNJOIN sent from client to server to unjoin user from group
+
+\r\n
+UNJOIN\r\n
+username\r\n
+group\r\n
+\r\n
+
+USERS sent from client to server to get a list of all users in a group
+
+\r\n
+USERS\r\n
+group\r\n
+\r\n
+
+GET sent from client to server to get a message of specific id from a group
+
+\r\n
+GET\r\n
+username\r\n
+group\r\n
+messageId\r\n
+\r\n
+
+POST sent from client to server to post a message to the server
+
+\r\n
+POST\r\n
+groupname\r\n
+username\r\n
+date\r\n
+subject\r\n
+body\r\n
+\r\n
+
+GROUPS sent from server to client to list available groups.
+
+GROUPS\r\n
+group1\r\n
+group2\r\n
+group3\r\n
+group4\r\n
+group5\r\n
+\r\n
+
+MESSAGE sent from server to client when a message has been sent to a group
+
+MESSAGE\r\n
+group\r\n
+id\r\n
+user\r\n
+date\r\n
+subject\r\n
+body\r\n
+\r\n
+
+GETMESSAGE sent from server to client as a response to client GET request
+
+GETMESSAGE\r\n
+group\r\n
+id\r\n
+user\r\n
+date\r\n
+subject\r\n
+body\r\n
+
+USERSINGROUP sent from server to client as response to client USERS request
+
+USERSINGROUP\r\n
+group\r\n
+user1\r\n
+user2\r\n
+...
+...
+userN\r\n
+\r\n
+
+USERJOINED sent from server to client to notify that a user has joined a group
+
+USERJOINED\r\n
+group\r\n
+user\r\n
+\r\n
+
+USERUNJOINED sent from server to client to notify that a user has unjoined a group
+
+USERUNJOINED\r\n
+group\r\n
+user\r\n
+\r\n
